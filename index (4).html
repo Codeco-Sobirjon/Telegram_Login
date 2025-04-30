@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram MiniApp Login</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@latest"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #0088cc;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background-color: #aaa;
+        }
+
+        .profile {
+            margin-top: 20px;
+        }
+
+        img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-top: 10px;
+        }
+
+        .debug {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            text-align: left;
+            font-size: 12px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Telegram MiniApp Login</h2>
+        <button id="loginBtn">Login with Telegram</button>
+
+        <div class="profile" id="profile" style="display: none;">
+            <p><strong>Welcome, <span id="name"></span>!</strong></p>
+            <img id="photo" src="" alt="Profile Photo">
+            <p>Referral code used: <span id="referralCode"></span></p>
+        </div>
+
+        <div class="debug" id="debugInfo">
+            <h4>Debug Information:</h4>
+            <pre id="debugContent"></pre>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        function getReferralCode() {
+            // Telegram start_paramdan referral kodni olish
+            const startParam = tg.initDataUnsafe?.start_param;
+            if (startParam) {
+                console.log("Referral code from start_param:", startParam);
+                return startParam;
+            }
+
+            // URL-dan referral kodni olish
+            const urlParams = new URLSearchParams(window.location.search);
+            const refCode = urlParams.get('ref');
+            if (refCode) {
+                console.log("Referral code from URL:", refCode);
+                return refCode;
+            }
+
+            console.log("No referral code found.");
+            return null;
+        }
+
+        document.getElementById("loginBtn").addEventListener("click", function () {
+            const initData = tg.initData || "";
+            const referralCode = getReferralCode();
+
+            console.log("Init Data:", initData);
+            console.log("Referral Code:", referralCode);
+
+            if (!initData) {
+                alert("Telegram data not found! Please make sure you're running inside Telegram.");
+                return;
+            }
+
+            const btn = document.getElementById("loginBtn");
+            btn.disabled = true;
+            btn.innerText = "Authenticating...";
+            console.log(initData)
+            fetch("https://fips.busipool.ru/api/v1/account/auth/telegram/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    initData: initData,
+                    referral_code: referralCode  // Backendga referral_code sifatida yuboriladi
+                })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.access_token) {
+                        localStorage.setItem("access_token", data.access_token);
+                        localStorage.setItem("refresh_token", data.refresh_token);
+
+                        const user = tg.initDataUnsafe?.user;
+                        if (user) {
+                            document.getElementById("name").innerText = user.first_name || "User";
+                            if (user.photo_url) {
+                                document.getElementById("photo").src = user.photo_url;
+                            }
+                        }
+
+                        // Backenddan kelgan referral_code_used ni ko‘rsatamiz
+                        document.getElementById("referralCode").innerText = data.referral_code_used || "None";
+                        document.getElementById("profile").style.display = "block";
+
+                        if (tg.sendData) {
+                            tg.sendData(JSON.stringify({
+                                auth: "success",
+                                referral_code: referralCode
+                            }));
+                        }
+                    } else {
+                        throw new Error("Authentication failed: " + (data.error || "No access token received"));
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    alert("Error during authentication: " + error.message);
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerText = "Login with Telegram";
+                });
+        });
+    </script>
+
+</body>
+
+</html>

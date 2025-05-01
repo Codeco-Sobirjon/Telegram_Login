@@ -84,14 +84,12 @@
         tg.expand();
 
         function getReferralCode() {
-            // Telegram start_paramdan referral kodni olish
             const startParam = tg.initDataUnsafe?.start_param;
             if (startParam) {
                 console.log("Referral code from start_param:", startParam);
                 return startParam;
             }
 
-            // URL-dan referral kodni olish
             const urlParams = new URLSearchParams(window.location.search);
             const refCode = urlParams.get('ref');
             if (refCode) {
@@ -126,7 +124,7 @@
                 },
                 body: JSON.stringify({
                     initData: initData,
-                    referral_code: referralCode  // Backendga referral_code sifatida yuboriladi
+                    referral_code: referralCode
                 })
             })
                 .then(response => {
@@ -148,7 +146,6 @@
                             }
                         }
 
-                        // Backenddan kelgan referral_code_used ni ko‘rsatamiz
                         document.getElementById("referralCode").innerText = data.referral_code_used || "None";
                         document.getElementById("profile").style.display = "block";
 

@@ -1,228 +1,379 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram MiniApp Login</title>
+    <title>Telegram InitData - Ko'rsatish</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://unpkg.com/@tonconnect/ui@latest"></script>
-
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
 
         .container {
-            max-width: 400px;
-            margin: auto;
-            padding: 20px;
-            border: 1px solid #ddd;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #1976d2;
+        }
+
+        .info-box strong {
+            color: #1565c0;
+        }
+
+        .data-section {
+            margin-bottom: 25px;
+        }
+
+        .data-section h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .data-display {
+            background: #f5f5f5;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            word-break: break-all;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            color: #333;
+        }
+
+        .user-info {
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .user-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .user-info-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-info-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .user-info-value {
+            color: #333;
+            text-align: right;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: block;
+            border: 4px solid #0088cc;
         }
 
         button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #0088cc;
+            width: 100%;
+            padding: 12px;
+            background: #0088cc;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
         }
 
-        button:disabled {
-            background-color: #aaa;
+        button:hover {
+            background: #006ba3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 136, 204, 0.4);
         }
 
-        .profile {
-            margin-top: 20px;
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
         }
 
-        img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            margin-top: 10px;
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
         }
 
-        .debug {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #f5f5f5;
-            border-radius: 5px;
-            text-align: left;
-            font-size: 12px;
-            display: none;
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
         }
     </style>
 </head>
-
 <body>
-
     <div class="container">
-        <h2>Telegram MiniApp Login</h2>
-        <button id="loginBtn">Login with Telegram</button>
+        <h1>📱 Telegram InitData</h1>
+        <p class="subtitle">Telegram Web App dan initData ma'lumotlari</p>
 
-        <div class="profile" id="profile" style="display: none;">
-            <p><strong>Welcome, <span id="name"></span>!</strong></p>
-            <img id="photo" src="" alt="Profile Photo">
-            <p>Referral code used: <span id="referralCode"></span></p>
+        <div id="status" class="status" style="display: none;"></div>
+
+        <div class="info-box">
+            <strong>ℹ️ Ma'lumot:</strong><br>
+            Bu sahifa Telegram Web App dan initData ni oladi va ko'rsatadi.
+            API ga so'rov yuborilmaydi.
         </div>
 
-        <div class="debug" id="debugInfo">
-            <h4>Debug Information:</h4>
-            <pre id="debugContent"></pre>
+        <!-- User ma'lumotlari -->
+        <div id="userSection" class="data-section" style="display: none;">
+            <h3>👤 Foydalanuvchi ma'lumotlari</h3>
+            <div id="userInfo" class="user-info"></div>
+        </div>
+
+        <!-- InitData -->
+        <div class="data-section">
+            <h3>📋 InitData (To'liq)</h3>
+            <div id="initDataDisplay" class="data-display">
+                Ma'lumotlar yuklanmoqda...
+            </div>
+            <button onclick="copyInitData()">📋 InitData ni nusxalash</button>
+        </div>
+
+        <!-- Parsed Data -->
+        <div class="data-section">
+            <h3>🔍 Parsed Data (JSON)</h3>
+            <div id="parsedDataDisplay" class="data-display">
+                Ma'lumotlar yuklanmoqda...
+            </div>
+            <button onclick="copyParsedData()">📋 Parsed Data ni nusxalash</button>
         </div>
     </div>
 
     <script>
+        // Telegram Web App инициализация
         const tg = window.Telegram.WebApp;
+        tg.ready();
         tg.expand();
 
-        // Backend URL ni o'zgartiring
-        const API_BASE_URL = 'http://localhost:8000'; // Yoki production URL: 'https://your-domain.com'
-
-        function getReferralCode() {
-            const startParam = tg.initDataUnsafe?.start_param;
-            if (startParam) {
-                console.log("Referral code from start_param:", startParam);
-                return startParam;
-            }
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const refCode = urlParams.get('ref');
-            if (refCode) {
-                console.log("Referral code from URL:", refCode);
-                return refCode;
-            }
-
-            console.log("No referral code found.");
-            return null;
-        }
-
-        document.getElementById("loginBtn").addEventListener("click", function () {
+        // InitData ni olish va ko'rsatish
+        function loadInitData() {
             const initData = tg.initData || "";
-            const referralCode = getReferralCode();
+            const initDataUnsafe = tg.initDataUnsafe || {};
+            const user = initDataUnsafe.user || {};
 
-            console.log("Init Data:", initData);
-            console.log("Referral Code:", referralCode);
-
+            // Status ko'rsatish
+            const statusDiv = document.getElementById('status');
+            
             if (!initData) {
-                alert("Telegram data not found! Please make sure you're running inside Telegram.");
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ InitData topilmadi! Iltimos, Telegram ichida oching.';
+                statusDiv.style.display = 'block';
+                document.getElementById('initDataDisplay').textContent = 'InitData mavjud emas';
                 return;
             }
 
-            const btn = document.getElementById("loginBtn");
-            btn.disabled = true;
-            btn.innerText = "Authenticating...";
-            
-            // Backend API endpoint
-            const apiUrl = `${API_BASE_URL}/api/v1/accounts/auth/telegram/`;
-            
-            console.log("Sending request to:", apiUrl);
-            console.log("Init Data:", initData);
+            statusDiv.className = 'status success';
+            statusDiv.textContent = '✅ InitData muvaffaqiyatli olindi!';
+            statusDiv.style.display = 'block';
 
-            fetch(apiUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    initData: initData,  // camelCase format
-                    referral_code: referralCode
-                })
-            })
-                .then(response => {
-                    console.log("Response status:", response.status);
-                    if (!response.ok) {
-                        return response.json().then(err => {
-                            throw new Error(err.error || `HTTP error! Status: ${response.status}`);
-                        });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("Response data:", data);
-                    
-                    if (data.access_token) {
-                        // Tokenlarni saqlash
-                        localStorage.setItem("access_token", data.access_token);
-                        localStorage.setItem("refresh_token", data.refresh_token);
+            // InitData ni ko'rsatish
+            document.getElementById('initDataDisplay').textContent = initData;
 
-                        // User ma'lumotlarini ko'rsatish
-                        const user = data.user || tg.initDataUnsafe?.user;
-                        if (user) {
-                            document.getElementById("name").innerText = user.first_name || "User";
-                            if (user.photo_url) {
-                                document.getElementById("photo").src = user.photo_url;
-                            }
-                        }
-
-                        document.getElementById("referralCode").innerText = data.referral_code_used || "None";
-                        document.getElementById("profile").style.display = "block";
-
-                        // Telegram bot ga ma'lumot yuborish
-                        if (tg.sendData) {
-                            tg.sendData(JSON.stringify({
-                                auth: "success",
-                                referral_code: referralCode
-                            }));
-                        }
-
-                        // Keyingi API so'rovlari uchun token ishlatish misoli
-                        console.log("Token saved! You can now use it for API requests:");
-                        console.log("Authorization: Bearer " + data.access_token);
-                    } else {
-                        throw new Error("Authentication failed: " + (data.error || "No access token received"));
-                    }
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                    alert("Error during authentication: " + error.message);
-                })
-                .finally(() => {
-                    btn.disabled = false;
-                    btn.innerText = "Login with Telegram";
-                });
-        });
-
-        // Keyingi API so'rovlari uchun misol funksiya
-        function makeAuthenticatedRequest(url, method = 'GET', body = null) {
-            const token = localStorage.getItem('access_token');
-            if (!token) {
-                console.error('No access token found. Please login first.');
-                return Promise.reject('No token');
+            // User ma'lumotlarini ko'rsatish
+            if (user && Object.keys(user).length > 0) {
+                const userSection = document.getElementById('userSection');
+                const userInfo = document.getElementById('userInfo');
+                
+                let userInfoHTML = '';
+                
+                if (user.photo_url) {
+                    userInfoHTML += `<img src="${user.photo_url}" alt="Avatar" class="avatar">`;
+                }
+                
+                userInfoHTML += '<div class="user-info-item">';
+                userInfoHTML += '<span class="user-info-label">ID:</span>';
+                userInfoHTML += `<span class="user-info-value">${user.id || 'N/A'}</span>`;
+                userInfoHTML += '</div>';
+                
+                userInfoHTML += '<div class="user-info-item">';
+                userInfoHTML += '<span class="user-info-label">Ism:</span>';
+                userInfoHTML += `<span class="user-info-value">${user.first_name || 'N/A'}</span>`;
+                userInfoHTML += '</div>';
+                
+                userInfoHTML += '<div class="user-info-item">';
+                userInfoHTML += '<span class="user-info-label">Familiya:</span>';
+                userInfoHTML += `<span class="user-info-value">${user.last_name || 'N/A'}</span>`;
+                userInfoHTML += '</div>';
+                
+                userInfoHTML += '<div class="user-info-item">';
+                userInfoHTML += '<span class="user-info-label">Username:</span>';
+                userInfoHTML += `<span class="user-info-value">@${user.username || 'N/A'}</span>`;
+                userInfoHTML += '</div>';
+                
+                userInfoHTML += '<div class="user-info-item">';
+                userInfoHTML += '<span class="user-info-label">Til:</span>';
+                userInfoHTML += `<span class="user-info-value">${user.language_code || 'N/A'}</span>`;
+                userInfoHTML += '</div>';
+                
+                userInfo.innerHTML = userInfoHTML;
+                userSection.style.display = 'block';
             }
 
-            const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            };
+            // Parsed Data ni ko'rsatish
+            try {
+                const parsedData = parseInitData(initData);
+                document.getElementById('parsedDataDisplay').textContent = 
+                    JSON.stringify(parsedData, null, 2);
+            } catch (error) {
+                document.getElementById('parsedDataDisplay').textContent = 
+                    'Xato: ' + error.message;
+            }
 
-            return fetch(url, {
-                method: method,
-                headers: headers,
-                body: body ? JSON.stringify(body) : null
-            })
-            .then(response => {
-                if (response.status === 401) {
-                    // Token eskirgan, refresh qilish kerak
-                    console.log('Token expired, need to refresh');
-                    // Refresh token logikasi qo'shishingiz kerak
+            // Console ga chiqarish
+            console.log('=== Telegram InitData ===');
+            console.log('InitData:', initData);
+            console.log('InitDataUnsafe:', initDataUnsafe);
+            console.log('User:', user);
+        }
+
+        // InitData ni parse qilish
+        function parseInitData(initData) {
+            const params = new URLSearchParams(initData);
+            const result = {};
+            
+            for (const [key, value] of params.entries()) {
+                if (key === 'user') {
+                    try {
+                        result[key] = JSON.parse(decodeURIComponent(value));
+                    } catch (e) {
+                        result[key] = value;
+                    }
+                } else {
+                    result[key] = value;
                 }
-                return response.json();
+            }
+            
+            return result;
+        }
+
+        // InitData ni nusxalash
+        function copyInitData() {
+            const initData = tg.initData || "";
+            if (!initData) {
+                alert('InitData mavjud emas!');
+                return;
+            }
+            
+            navigator.clipboard.writeText(initData).then(() => {
+                showMessage('✅ InitData nusxalandi!', 'success');
+            }).catch(err => {
+                showMessage('❌ Nusxalashda xato: ' + err.message, 'error');
             });
         }
 
-        // Misol: User ma'lumotlarini olish
-        // makeAuthenticatedRequest(`${API_BASE_URL}/api/v1/accounts/me/`)
-        //     .then(data => console.log('User data:', data));
+        // Parsed Data ni nusxalash
+        function copyParsedData() {
+            const initData = tg.initData || "";
+            if (!initData) {
+                alert('InitData mavjud emas!');
+                return;
+            }
+            
+            try {
+                const parsedData = parseInitData(initData);
+                const jsonString = JSON.stringify(parsedData, null, 2);
+                
+                navigator.clipboard.writeText(jsonString).then(() => {
+                    showMessage('✅ Parsed Data nusxalandi!', 'success');
+                }).catch(err => {
+                    showMessage('❌ Nusxalashda xato: ' + err.message, 'error');
+                });
+            } catch (error) {
+                showMessage('❌ Xato: ' + error.message, 'error');
+            }
+        }
+
+        // Xabar ko'rsatish
+        function showMessage(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                if (type === 'success') {
+                    statusDiv.style.display = 'none';
+                }
+            }, 3000);
+        }
+
+        // Sayt yuklanganda initData ni yuklash
+        window.addEventListener('load', () => {
+            loadInitData();
+        });
+
+        // Agar initData o'zgarsa, qayta yuklash
+        if (tg.onEvent) {
+            tg.onEvent('viewportChanged', () => {
+                loadInitData();
+            });
+        }
     </script>
-
 </body>
-
 </html>
